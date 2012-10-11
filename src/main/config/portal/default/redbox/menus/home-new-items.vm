@@ -1,0 +1,25 @@
+#if(!$self.latest.isEmpty())
+    #set($menuTitle = "Most recent records")
+    #parseTemplate("wrapping/menu-open.vm")
+    <div class="block">
+        <ol>
+        #foreach($item in $self.latest)
+            #set($itemId = $item.getFirst('id'))
+            #set($itemTitle = $item.getFirst('dc_title'))
+            #set($owner = $item.getFirst('owner'))
+            #set($wfStep = $item.getFirst('workflow_step'))
+            #set($wfLabel = $item.getFirst('workflow_step_label'))
+            <li>
+                #if("$!wfStep" != "" && $wfStep != "" && $wfStep != "live")
+                    <img class="workflow" src="$portalPath/images/icons/wf_${wfStep}.png" alt="Stage: $wfLabel" title="Stage: $wfLabel"/>
+                #end
+                #if("$!owner" != "" && $owner == $page.authentication.get_username())
+                    <img style="vertical-align:middle" src="$portalPath/images/icons/user.png" alt="My record" />
+                #end
+                <a href="$portalPath/detail/$itemId">$itemTitle</a>
+            </li>
+        #end
+        </ol>
+    </div>
+    #parseTemplate("wrapping/info-box-close.vm")
+#end

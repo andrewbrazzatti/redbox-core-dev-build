@@ -2,10 +2,10 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.googlecode.redbox-mint</groupId>
-  <artifactId>redbox-local-curation-demo</artifactId>
+  <artifactId>redbox-core-dev</artifactId>
   <version>1.5.2-SNAPSHOT</version>
   <packaging>${packaging}</packaging>
-  <name>ReDBox - Local Curation Demo</name>
+  <name>ReDBox - Core Dev Demo</name>
   <parent>
     <groupId>com.googlecode.redbox-mint</groupId>
     <artifactId>redbox</artifactId>
@@ -70,13 +70,7 @@
       <artifactId>plugin-transformer-local</artifactId>
       <version>${redbox.version}</version>
     </dependency>
-    <dependency>
-      <groupId>com.googlecode.the-fascinator</groupId>
-      <artifactId>fascinator-portal</artifactId>
-      <type>warpath</type>
-      <version>1.1.1</version>
-    </dependency>
-  </dependencies>
+    </dependencies>
   <profiles>
     <profile>
       <id>build-package</id>

@@ -1,0 +1,119 @@
+#set($pageTitle = "Notify us about a dataset")
+<style type="text/css">
+fieldset p textarea { display:block; width: 98%; }
+</style>
+<div class="grid_16 widget-form"
+    data-form-fields="title,description,redbox:formVersion,redbox:newForm,redbox:submissionProcess.redbox:submitted,workflow_source,redbox:submissionProcess.dc:date,redbox:submissionProcess.dc:description,redbox:submissionProcess.locrel:prc.foaf:Person.foaf:name,redbox:submissionProcess.locrel:prc.foaf:Person.foaf:mbox,redbox:submissionProcess.locrel:prc.foaf:Person.foaf:phone,redbox:submissionProcess.dc:title,redbox:submissionProcess.skos:note"
+    data-form-fields-readonly="metaList"
+    data-submit-func="srSubmitFunc">
+    <input type="hidden" id="redbox:formVersion" value="$systemConfig.getString("Unknown", "redbox.version.string")" />
+    <input type="hidden" id="redbox:newForm" value="true" />
+    <input type="hidden" name="redbox:submissionProcess.redbox:submitted" value="true" />
+    #set($source = $self.getRequestData("workflow_source"))
+    #if("$!source" == "")
+        #set($source = "Submission Request")
+    #end
+    <input type="hidden" name="workflow_source" value="$!source" />
+    <input type="hidden" name="metaList" value="[]" />
+    <p>Please review the submission request and action as appropriate.</p>
+    <fieldset>
+        <p>
+            <label for="redbox:submissionProcess.dc:date">Date Submitted</label>
+            <input id="redbox:submissionProcess.dc:date" type="text" size="40" value="$!self.getRequestData('redbox:submissionProcess.dc:date')" readonly="readonly" />
+        </p>
+        #if("$!self.getRequestData('redbox:submissionProcess.dc:title')"!="")
+        <input type="hidden" name="title" value="$!self.getRequestData('redbox:submissionProcess.dc:title')">
+        <p>
+            <label for="redbox:submissionProcess.dc:title">Title</label>
+            <textarea id="redbox:submissionProcess.dc:title" cols="40" rows="2" readonly="readonly">$!self.getRequestData("redbox:submissionProcess.dc:title")</textarea>
+        </p>
+        #end
+        <p>
+            <label for="redbox:submissionProcess.dc:description">Description</label>
+            <textarea id="redbox:submissionProcess.dc:description" cols="40" rows="10" readonly="readonly">$!self.getRequestData("redbox:submissionProcess.dc:description")</textarea>
+        </p>
+        <p>
+            <label for="redbox:submissionProcess.locrel:prc.foaf:Person.foaf:name">Contact Name</label>
+            <input id="redbox:submissionProcess.locrel:prc.foaf:Person.foaf:name" type="text" size="40" value="$!self.getRequestData('redbox:submissionProcess.locrel:prc.foaf:Person.foaf:name')" readonly="readonly" />
+        </p>
+        <p>
+            <label for="redbox:submissionProcess.locrel:prc.foaf:Person.foaf:phone">Phone Number</label>
+            <input id="redbox:submissionProcess.locrel:prc.foaf:Person.foaf:phone" type="text" size="40" value="$!self.getRequestData('redbox:submissionProcess.locrel:prc.foaf:Person.foaf:phone')" readonly="readonly" />
+        </p>
+        <p>
+            <label for="redbox:submissionProcess.locrel:prc.foaf:Person.foaf:mbox">Email Address</label>
+            <input id="redbox:submissionProcess.locrel:prc.foaf:Person.foaf:mbox" type="text" size="40" value="$!self.getRequestData('redbox:submissionProcess.locrel:prc.foaf:Person.foaf:mbox')" readonly="readonly" />
+        </p>
+        #if("$!self.getRequestData('redbox:submissionProcess.skos:note')"!="")
+        <p>
+            <label for="redbox:submissionProcess.skos:note">Notes</label>
+            <textarea id="redbox:submissionProcess.skos:note" cols="40" rows="5" readonly="readonly">$!self.getRequestData("redbox:submissionProcess.skos:note")</textarea>
+        </p>
+        #end
+        <button class="button form-fields-submit" id="submitButton">Accept</button>
+        <button class="button form-fields-cancel" id="deleteButton">Delete</button>
+        <span class="hidden" id="loading">
+            Please wait while processing <img src="$portalPath/images/icons/loading.gif" />
+        </span>
+    </fieldset>
+</div>
+<div class="clear"></div>
+<script type="text/javascript" src="$portalPath/javascript-widgets/widgets2.js"></script>
+<script type="text/javascript">
+(function($){
+    $(function(){
+        widgets.contentLoaded();
+        $("#deleteButton").click(function(){
+            $(this).attr("disabled", "disabled");
+            jQuery.ajax({
+                type: "POST",
+                url: "$portalPath/actions/delete.ajax",
+                data: { record: "$self.oid" },
+                success: function(){ window.location.href="$portalPath/home"; },
+                error: function(req){
+                    widgets.messageBox(req.responseText, jQuery.noop, "Error");
+                    $("#deleteButton").removeAttr("disabled");
+                }
+            });
+        });
+    });
+})(jQuery);
+
+function srSubmitFunc(widgetForm,formData){
+    $("#submitButton").attr("disabled", "disabled");
+    $("#loading").show();
+    function failed(msg){
+        widgets.messageBox(
+            "Sorry, an error occurred processing your request. Please try again.\n"+msg,
+            function(){
+                $("#submitButton,#deleteButton").removeAttr("disabled");
+                $("#loading").hide();
+            },
+            "Error");
+    }
+    var postData = jQuery.extend(formData,{
+        ajax: true,
+        func: "update-package-meta-deposit",
+        oid: "$self.oid",
+        acceptOnly: true
+    });
+    delete postData.metaList;
+    jQuery.ajax({
+        type: "POST",
+        url: "$portalPath/actions/workflow.ajax",
+        data: postData,
+        success: function(workflowData){
+            if(workflowData.ok){
+                $("#submitButton,#deleteButton").removeAttr("disabled");
+                $("#loading").hide();
+                window.location.reload();
+            }else{
+                failed(workflowData.error);
+            }
+        },
+        error: function(req){
+            failed(req.responseText);
+        }
+    });
+}
+</script>

@@ -1,0 +1,219 @@
+#set($canProgress = ($stage != "live" and $stage != "retired"))
+#set($isPublished = ($stage == "live"))
+<h3><a href="#submit">Submit</a></h3>
+<div id="submit" class="inputscreen">
+    #fieldTitle("agreement" "Progress" false)
+    <div class="help-content" id="help-agreement">
+        Progress the record through the workflow as required.
+    </div>
+    <p>
+        #if($canProgress)
+        <input id="agreement" type="checkbox" />
+        #end
+        <label id="agreementLabel" for="agreement"></label>
+        #if($canProgress)
+        <input type="submit" disabled="disabled" id="update-package" value="Proceed" class="button form-fields-submit" />
+        <input type="hidden" class="submit-result-func" value="submitted_ok" />
+        <div class="submitted-result" style="padding-left: 2em; font-size: 120%;"></div>
+        #end
+    </p>
+    #if($isPublished)
+    #fieldTitle("retire" "Retire" false)
+    <div class="help-content" id="help-retire">
+        Retire the record so that updates to the record will no longer be
+        published.
+    </div>
+    <p>
+        <input id="retire" type="checkbox" />
+        <label id="retireLabel" for="retire">I understand that retiring this record will no longer update the published record.</label>
+        <input type="submit" disabled="disabled" id="update-package" value="Retire" class="button form-fields-submit" />
+        <input type="hidden" class="submit-result-func" value="submitted_ok" />
+        <div class="submitted-result" style="padding-left: 2em; font-size: 120%;"></div>
+    </p>
+    #end
+    <p>
+        <div style="color:red;" id="validation-summary">
+           <div id="not-valid-for-submitting"  class="validation-err-msg"
+                    style="display:none;color:darkred;">
+                You must fixup all fields with missing required data or invalid data before
+                you can submit!
+           </div>
+           <div>
+                <label class="validation-err-msg" for="dc:title">
+                    A Title is required!
+                </label>
+           </div>
+           <div>
+                <label class="validation-err-msg" for="dc:type.rdf:PlainLiteral">
+                    A Type is required!
+                </label>
+           </div>
+           <div>
+                <label class="validation-err-msg" for="dc:description">
+                    A Description is required!
+                </label>
+           </div>
+           <div>
+                <label class="validation-err-msg" for="${cite}.skos:prefLabel">
+                    The full citation string has not been rendered!
+                </label>
+           </div>
+           ##<div>
+           ##     <label class="validation-err-msg" for="${citePart}.dc:identifier.rdf:PlainLiteral">
+           ##         A citation identifier is required!
+           ##     </label>
+           ##</div>
+           <div>
+                <label class="validation-err-msg" for="${citePart}.locrel:ctb.1.foaf:givenName">
+                    A citation contributor's given name or family name is required!
+                </label>
+           </div>
+           <div>
+                <label class="validation-err-msg" for="${citePart}.dc:title">
+                    A citation title is required!
+                </label>
+           </div>
+           ##<div>
+           ##     <label class="validation-err-msg" for="${citePart}.dc:hasVersion.rdf:PlainLiteral">
+           ##         A citation edition is required!
+           ##     </label>
+           ##</div>
+           ##<div>
+           ##     <label class="validation-err-msg" for="${citePart}.vivo:Publisher.vivo:Location">
+           ##         A citation publication location is required!
+           ##     </label>
+           ##</div>
+           <div>
+                <label class="validation-err-msg" for="${citePart}.bibo:Website.dc:identifier">
+                    A citation URL is required!
+                </label>
+           </div>
+           ##<div>
+           ##     <label class="validation-err-msg" for="${citePart}.skos:scopeNote">
+           ##         A citation context is required!
+           ##     </label>
+           ##</div>
+           <div>
+                <label class="validation-err-msg" for="dc:creator.foaf:Person.1.foaf:givenName">
+                    A Creators Given or Family name' is required!
+                </label>
+           </div>
+           <div>
+                <label class="validation-err-msg" for="dc:subject.vivo:keyword.0.rdf:PlainLiteral">
+                    A Keyword is required!
+                </label>
+           </div>
+           <div>
+                <label class="validation-err-msg" for="dc:accessRights.skos:prefLabel">
+                    Access Rights/Conditions or Rights is required!
+                </label>
+           </div>
+           <div>
+                <label class="validation-err-msg" for="dc:identifier.rdf:PlainLiteral">
+                    An identifier is required!
+                </label>
+           </div>
+           <div>
+                <label class="validation-err-msg" for="bibo:Website.1.dc:identifier">
+                    A location is required!
+                </label>
+           </div>
+           <div>
+                <label class="validation-err-msg" for="redbox:retentionPeriod">
+                    Retention Period is required!
+                </label>
+           </div>
+           <div>
+                <label class="validation-err-msg" for="dc:extent">
+                     Extent or quantity is required!
+                </label>
+           </div>
+        </div>
+    </p>
+
+    #if($stage != "live" && $stage != "retired")
+        #fieldTitle("deleteAgreement" "Delete" false)
+        <div class="help-content" id="help-deleteAgreement">
+            Remove the record completely from ReDBox. Note that any records already
+            externally published will remain so.
+        </div>
+        <p>
+            <input id="deleteAgreement" type="checkbox" />
+            <label id="deleteAgreementLabel" for="deleteAgreement">
+                I understand that deleting this record is <strong>permanent</strong> and cannot be undone.
+            </label>
+            <input type="button" class="button" id="delete-record" disabled="disabled" value="Delete" />
+            <p id="delete-record-error"></p>
+        </p>
+    #end
+</div>
+
+<script type="text/javascript">
+$(function() {
+   $('#agreementLabel').wikiText(packageData.nextStageMessage);
+    if (packageData.stage == "live") {
+        $("#agreement,#retire").hide();
+        $("#update-package").hide();
+    } else {
+        $("#agreement,#retire").click(function() {
+            $("#not-valid-for-submitting").hide();
+            if ($(this).is(":checked")) {
+                if (widgets.forms[0].validator.isOkToSubmit() == false) {
+                    $(this).attr("checked", false);
+                    $("#not-valid-for-submitting").show();
+                } else {
+                    $("#update-package").removeAttr("disabled");
+                }
+            } else {
+                $("#update-package").attr("disabled", "disabled");
+            }
+        });
+        $("#deleteAgreement").click(function() {
+            if ($(this).is(":checked")) {
+                $("#delete-record").removeAttr("disabled");
+            } else {
+                $("#delete-record").attr("disabled", "disabled");
+            }
+        });
+    }
+
+    $("#delete-record").click(function() {
+        jQuery.ajax({
+            type: "POST",
+            url: "$portalPath/actions/delete.ajax",
+            success: function(data, status) {window.location.href = "$portalPath/home";},
+            error: function(req, status, e) {$("#delete-record-error").html(req.responseText);},
+            data: {record: "$oid"}
+        });
+    });
+
+    $("#validation-summary label").click(function() {
+        var i, id;
+        try{
+            i = $(this);
+            id = i.attr("for");
+            i = getReDBoxById(id);
+            id = i.parents(".ui-tabs-panel").attr("id");
+            $("a[href=#"+id+"]").click();
+            i.focus();
+        } catch(e) {
+            alert(e);
+        }
+        return false;
+    });
+    try{
+        var vTimer = null;
+        function onValidation(r) {
+            function cb(){
+                vTimer = null;
+                if ($("#validation-summary label:visible").size() == 0) {
+                    $("#not-valid-for-submitting").hide();
+                }
+            }
+            if (!vTimer) vTimer = setTimeout(cb, 200);
+        }
+        setTimeout(function() {widgets.forms[0].validator.onValidationListeners.push(onValidation);},
+                500);
+    } catch(e) {}
+});
+</script>
